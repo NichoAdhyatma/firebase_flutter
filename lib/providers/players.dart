@@ -20,10 +20,9 @@ class Players with ChangeNotifier {
     String image,
     BuildContext context,
   ) {
+    DateTime datetimeNow = DateTime.now();
     Uri url = Uri.parse(
         "https://flutter-firebase-7cca4-default-rtdb.firebaseio.com/players.json");
-
-    DateTime datetimeNow = DateTime.now();
 
     return http
         .post(
@@ -53,30 +52,47 @@ class Players with ChangeNotifier {
     );
   }
 
-  void editPlayer(String id, String name, String position, String image,
-      BuildContext context) {
-    Player selectPlayer = _allPlayer.firstWhere((element) => element.id == id);
-    selectPlayer.name = name;
-    selectPlayer.position = position;
-    selectPlayer.imageUrl = image;
+  Future<void> editPlayer(
+    String id,
+    String name,
+    String position,
+    String image,
+  ) {
+    Uri url = Uri.parse(
+        "https://flutter-firebase-7cca4-default-rtdb.firebaseio.com/players/$id.json");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Berhasil diubah"),
-        duration: Duration(seconds: 2),
+    return http
+        .patch(
+      url,
+      body: json.encode(
+        {
+          "name": name,
+          "position": position,
+          "imageUrl": image,
+        },
       ),
+    )
+        .then(
+      (response) {
+        Player selectPlayer =
+            _allPlayer.firstWhere((element) => element.id == id);
+        selectPlayer.name = name;
+        selectPlayer.position = position;
+        selectPlayer.imageUrl = image;
+        notifyListeners();
+      },
     );
-    notifyListeners();
   }
 
-  void deletePlayer(String id, BuildContext context) {
-    _allPlayer.removeWhere((element) => element.id == id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Berhasil dihapus"),
-        duration: Duration(milliseconds: 500),
-      ),
+  Future<void> deletePlayer(String id) {
+    Uri url = Uri.parse(
+        "https://flutter-firebase-7cca4-default-rtdb.firebaseio.com/players/$id.json");
+
+    return http.delete(url).then(
+      (response) {
+        _allPlayer.removeWhere((element) => element.id == id);
+        notifyListeners();
+      },
     );
-    notifyListeners();
   }
 }

@@ -26,7 +26,7 @@ class HomePage extends StatelessWidget {
         ],
       ),
       body: (allPlayerProvider.jumlahPlayer == 0)
-          ? Container(
+          ? SizedBox(
               width: double.infinity,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +74,14 @@ class HomePage extends StatelessWidget {
                   ),
                   trailing: IconButton(
                     onPressed: () {
-                      allPlayerProvider.deletePlayer(id!, context);
+                      allPlayerProvider.deletePlayer(id!).then((value) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Berhasil dihapus"),
+                            duration: Duration(milliseconds: 500),
+                          ),
+                        );
+                      });
                     },
                     icon: const Icon(Icons.delete),
                   ),
