@@ -7,7 +7,9 @@ class AddPlayer extends StatelessWidget {
   static const routeName = "/add-player";
   final TextEditingController nameController = TextEditingController();
   final TextEditingController positionController = TextEditingController();
-  final TextEditingController imageController = TextEditingController();
+  final TextEditingController imageController = TextEditingController(
+    text: "https://api.multiavatar.com/1.png"
+  );
 
   AddPlayer({super.key});
 

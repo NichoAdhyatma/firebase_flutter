@@ -7,12 +7,29 @@ import '../pages/add_player_page.dart';
 
 import '../providers/players.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool isInit = true;
+  @override
+  void didChangeDependencies() {
+    if (isInit) {
+      Provider.of<Players>(context).initializeData();
+      isInit = false;
+    }
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
     final allPlayerProvider = Provider.of<Players>(context);
+    print("Rebuild");
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ALL PLAYERS"),
@@ -21,6 +38,12 @@ class HomePage extends StatelessWidget {
             icon: const Icon(Icons.add),
             onPressed: () {
               Navigator.pushNamed(context, AddPlayer.routeName);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              allPlayerProvider.initializeData();
             },
           ),
         ],
@@ -62,11 +85,11 @@ class HomePage extends StatelessWidget {
                   },
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(
-                      allPlayerProvider.allPlayer[index].imageUrl!,
+                      allPlayerProvider.allPlayer[index].imageUrl,
                     ),
                   ),
                   title: Text(
-                    allPlayerProvider.allPlayer[index].name!,
+                    allPlayerProvider.allPlayer[index].name,
                   ),
                   subtitle: Text(
                     DateFormat.yMMMMd()

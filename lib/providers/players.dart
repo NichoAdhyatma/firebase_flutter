@@ -95,4 +95,29 @@ class Players with ChangeNotifier {
       },
     );
   }
+
+  Future<void> initializeData() {
+    Uri url = Uri.parse(
+        "https://flutter-firebase-7cca4-default-rtdb.firebaseio.com/players.json");
+
+    return http.get(url).then(
+      (value) {
+        var response = json.decode(value.body) as Map<String, dynamic>;
+
+        response.forEach((key, value) {
+          _allPlayer.add(
+            Player(
+              id: key,
+              name: value["name"],
+              position: value["position"],
+              imageUrl: value["imageUrl"],
+              createdAt: DateTime.parse(value["createdAt"]),
+            ),
+          );
+        });
+        print("Success init data");
+        notifyListeners();
+      },
+    );
+  }
 }
