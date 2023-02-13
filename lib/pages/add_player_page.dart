@@ -7,15 +7,53 @@ class AddPlayer extends StatelessWidget {
   static const routeName = "/add-player";
   final TextEditingController nameController = TextEditingController();
   final TextEditingController positionController = TextEditingController();
-  final TextEditingController imageController = TextEditingController(
-    text: "https://api.multiavatar.com/1.png"
-  );
+  final TextEditingController imageController =
+      TextEditingController(text: "https://api.multiavatar.com/1.png");
 
   AddPlayer({super.key});
 
   @override
   Widget build(BuildContext context) {
     final players = Provider.of<Players>(context, listen: false);
+    addPlayer() {
+      players
+          .addPlayer(
+        nameController.text,
+        positionController.text,
+        imageController.text,
+        context,
+      )
+          .then(
+        (value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Berhasil ditambahkan"),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context);
+        },
+      ).catchError(
+        (err) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("Server Error $err"),
+              content: const Text("Check your internet connection!"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Ok"),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ADD PLAYER"),
@@ -23,24 +61,7 @@ class AddPlayer extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () {
-              players
-                  .addPlayer(
-                nameController.text,
-                positionController.text,
-                imageController.text,
-                context,
-              )
-                  .then(
-                (value) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Berhasil ditambahkan"),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-              );
+              addPlayer();
             },
           ),
         ],
@@ -69,24 +90,7 @@ class AddPlayer extends StatelessWidget {
                 textInputAction: TextInputAction.done,
                 controller: imageController,
                 onEditingComplete: () {
-                  players
-                      .addPlayer(
-                    nameController.text,
-                    positionController.text,
-                    imageController.text,
-                    context,
-                  )
-                      .then(
-                    (value) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Berhasil ditambahkan"),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      Navigator.pop(context);
-                    },
-                  );
+                  addPlayer();
                 },
               ),
               const SizedBox(height: 50),
@@ -95,24 +99,7 @@ class AddPlayer extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
                   onPressed: () {
-                    players
-                        .addPlayer(
-                      nameController.text,
-                      positionController.text,
-                      imageController.text,
-                      context,
-                    )
-                        .then(
-                      (value) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Berhasil ditambahkan"),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        Navigator.pop(context);
-                      },
-                    );
+                    addPlayer();
                   },
                   child: const Text(
                     "Submit",

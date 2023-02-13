@@ -38,17 +38,23 @@ class Players with ChangeNotifier {
     )
         .then(
       (response) {
-        _allPlayer.add(
-          Player(
-            id: json.decode(response.body)["name"].toString(),
-            name: name,
-            position: position,
-            imageUrl: image,
-            createdAt: datetimeNow,
-          ),
-        );
-        notifyListeners();
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          _allPlayer.add(
+            Player(
+              id: json.decode(response.body)["name"].toString(),
+              name: name,
+              position: position,
+              imageUrl: image,
+              createdAt: datetimeNow,
+            ),
+          );
+          notifyListeners();
+        } else {
+          throw ("${response.statusCode}");
+        }
       },
+    ).catchError(
+      (err) => throw (err),
     );
   }
 
@@ -74,13 +80,19 @@ class Players with ChangeNotifier {
     )
         .then(
       (response) {
-        Player selectPlayer =
-            _allPlayer.firstWhere((element) => element.id == id);
-        selectPlayer.name = name;
-        selectPlayer.position = position;
-        selectPlayer.imageUrl = image;
-        notifyListeners();
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          Player selectPlayer =
+              _allPlayer.firstWhere((element) => element.id == id);
+          selectPlayer.name = name;
+          selectPlayer.position = position;
+          selectPlayer.imageUrl = image;
+          notifyListeners();
+        } else {
+          throw ("${response.statusCode}");
+        }
       },
+    ).catchError(
+      (err) => throw (err),
     );
   }
 
@@ -90,9 +102,15 @@ class Players with ChangeNotifier {
 
     return http.delete(url).then(
       (response) {
-        _allPlayer.removeWhere((element) => element.id == id);
-        notifyListeners();
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          _allPlayer.removeWhere((element) => element.id == id);
+          notifyListeners();
+        } else {
+          throw ("${response.statusCode}");
+        }
       },
+    ).catchError(
+      (err) => throw (err),
     );
   }
 
@@ -102,21 +120,26 @@ class Players with ChangeNotifier {
 
     return http.get(url).then(
       (value) {
-        var response = json.decode(value.body) as Map<String, dynamic>;
+        var response = json.decode(value.body);
 
-        response.forEach((key, value) {
-          _allPlayer.add(
-            Player(
-              id: key,
-              name: value["name"],
-              position: value["position"],
-              imageUrl: value["imageUrl"],
-              createdAt: DateTime.parse(value["createdAt"]),
-            ),
+        if (response != null) {
+          response as Map<String, dynamic>;
+
+          response.forEach(
+            (key, value) {
+              _allPlayer.add(
+                Player(
+                  id: key,
+                  name: value["name"],
+                  position: value["position"],
+                  imageUrl: value["imageUrl"],
+                  createdAt: DateTime.parse(value["createdAt"]),
+                ),
+              );
+            },
           );
-        });
-        print("Success init data");
-        notifyListeners();
+          notifyListeners();
+        }
       },
     );
   }

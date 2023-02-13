@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,46 @@ class DetailPlayer extends StatelessWidget {
         TextEditingController(text: selectPLayer.name);
     final TextEditingController positionController =
         TextEditingController(text: selectPLayer.position);
+
+    editPlayer() {
+      players
+          .editPlayer(
+        playerId,
+        nameController.text,
+        positionController.text,
+        imageController.text,
+      )
+          .then(
+        (value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Berhasil diubah"),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context);
+        },
+      ).catchError(
+        (err) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("Server Error $err"),
+              content: const Text("Check your internet connection!"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Ok"),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("DETAIL PLAYER"),
@@ -29,15 +70,16 @@ class DetailPlayer extends StatelessWidget {
           child: Column(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: Container(
+                borderRadius: BorderRadius.circular(50),
+                child: SizedBox(
                   width: 150,
                   height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage(imageController.text),
+                  child: CachedNetworkImage(
+                    imageUrl: selectPLayer.imageUrl!,
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Image.network(
+                      "https://api.multiavatar.com/0.png",
                     ),
                   ),
                 ),
@@ -61,22 +103,7 @@ class DetailPlayer extends StatelessWidget {
                 textInputAction: TextInputAction.done,
                 controller: imageController,
                 onEditingComplete: () {
-                  players
-                      .editPlayer(
-                    playerId,
-                    nameController.text,
-                    positionController.text,
-                    imageController.text,
-                  )
-                      .then((value) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Berhasil diubah"),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                    Navigator.pop(context);
-                  });
+                  editPlayer();
                 },
               ),
               const SizedBox(height: 30),
@@ -85,22 +112,7 @@ class DetailPlayer extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
                   onPressed: () {
-                    players
-                        .editPlayer(
-                      playerId,
-                      nameController.text,
-                      positionController.text,
-                      imageController.text,
-                    )
-                        .then((value) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Berhasil diubah"),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      Navigator.pop(context);
-                    });
+                    editPlayer();
                   },
                   child: const Text(
                     "Edit",

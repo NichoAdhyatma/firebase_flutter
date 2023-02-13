@@ -1,12 +1,11 @@
 class Player {
-  String imageUrl, name, position;
-  String? id;
+  String? imageUrl, name, position, id;
   DateTime? createdAt;
 
   Player(
-      {this.position = "unemployed",
+      {this.position,
       this.id,
-      this.imageUrl = "https://api.multiavatar.com/1.png",
-      this.name = "unknown",
+      this.imageUrl,
+      this.name,
       this.createdAt});
 }
