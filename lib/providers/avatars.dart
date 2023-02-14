@@ -13,7 +13,7 @@ class Avatars extends ChangeNotifier {
   Future<void> generateImages() async {
     _images.clear();
     for (int i = 0; i < 4; i++) {
-      _images.add("$imageUrl${1 + Random().nextInt(1000)}.png");
+      _images.add("$imageUrl${1 + Random().nextInt(200)}.png");
     }
     
   }

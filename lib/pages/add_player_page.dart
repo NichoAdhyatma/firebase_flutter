@@ -23,6 +23,7 @@ class _AddPlayerState extends State<AddPlayer> {
       TextEditingController(text: "https://api.multiavatar.com/1.png");
 
   bool isInit = true;
+  bool select = false;
 
   @override
   void didChangeDependencies() {
@@ -39,7 +40,7 @@ class _AddPlayerState extends State<AddPlayer> {
     imageController.text = url;
   }
 
-  int selectedImage = 0;
+  int selectedImage = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -116,17 +117,19 @@ class _AddPlayerState extends State<AddPlayer> {
                 textInputAction: TextInputAction.next,
                 controller: positionController,
               ),
-              // TextFormField(
-              //   autocorrect: false,
-              //   decoration: const InputDecoration(labelText: "Image URL"),
-              //   textInputAction: TextInputAction.done,
-              //   controller: imageController,
-              //   onEditingComplete: () {
-              //     addPlayer();
-              //   },
-              // ),
               const SizedBox(
                 height: 20,
+              ),
+              Text(
+                "Select Avatar",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(
+                height: 10,
               ),
               Flexible(
                 child: ConstrainedBox(
@@ -145,7 +148,12 @@ class _AddPlayerState extends State<AddPlayer> {
                           setImage(avatars.images[index]);
                           setState(
                             () {
-                              selectedImage = index;
+                              if (selectedImage != index) {
+                                selectedImage = index;
+                              } else {
+                                selectedImage = -1;
+                                setImage("https://api.multiavatar.com/0.png");
+                              }
                             },
                           );
                         },
@@ -172,7 +180,6 @@ class _AddPlayerState extends State<AddPlayer> {
                   ),
                 ),
               ),
-
               Container(
                 width: double.infinity,
                 alignment: Alignment.centerRight,
@@ -183,6 +190,8 @@ class _AddPlayerState extends State<AddPlayer> {
                       onPressed: () {
                         setState(() {
                           isInit = true;
+                          selectedImage = -1;
+                          setImage("");
                           avatars.notifyListeners();
                         });
                       },

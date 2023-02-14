@@ -17,9 +17,16 @@ class DetailPlayer extends StatefulWidget {
 class _DetailPlayerState extends State<DetailPlayer> {
   bool isInit = true;
 
+  String imageUrl = "";
+
+  int selectedImage = -1;
+
+  setImage(String url) {
+    imageUrl = url;
+  }
+
   @override
   void didChangeDependencies() {
-    print("avatar generatre");
     if (isInit) {
       Provider.of<Avatars>(context).generateImages();
       isInit = !isInit;
@@ -27,7 +34,6 @@ class _DetailPlayerState extends State<DetailPlayer> {
     super.didChangeDependencies();
   }
 
-  int selectedImage = 0;
   @override
   Widget build(BuildContext context) {
     final players = Provider.of<Players>(context, listen: false);
@@ -35,16 +41,11 @@ class _DetailPlayerState extends State<DetailPlayer> {
 
     final playerId = ModalRoute.of(context)!.settings.arguments as String;
     final selectPLayer = players.selectById(playerId);
-    final TextEditingController imageController =
-        TextEditingController(text: selectPLayer.imageUrl);
+
     final TextEditingController nameController =
         TextEditingController(text: selectPLayer.name);
     final TextEditingController positionController =
         TextEditingController(text: selectPLayer.position);
-
-    setImage(String url) {
-      imageController.text = url;
-    }
 
     editPlayer() {
       players
@@ -52,7 +53,7 @@ class _DetailPlayerState extends State<DetailPlayer> {
         playerId,
         nameController.text,
         positionController.text,
-        imageController.text,
+        imageUrl.isEmpty ? selectPLayer.imageUrl! : imageUrl,
       )
           .then(
         (value) {
@@ -103,9 +104,8 @@ class _DetailPlayerState extends State<DetailPlayer> {
                     imageUrl: selectPLayer.imageUrl!,
                     placeholder: (context, url) =>
                         const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Image.network(
-                      "https://api.multiavatar.com/0.png",
-                    ),
+                    errorWidget: (context, url, error) =>
+                        Image.network("https://api.multiavatar.com/0.png"),
                   ),
                 ),
               ),
@@ -123,7 +123,18 @@ class _DetailPlayerState extends State<DetailPlayer> {
                 controller: positionController,
               ),
               const SizedBox(
-                height: 20,
+                height: 10,
+              ),
+              Text(
+                "Select New Avatar",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(
+                height: 10,
               ),
               Flexible(
                 child: ConstrainedBox(
@@ -142,7 +153,12 @@ class _DetailPlayerState extends State<DetailPlayer> {
                           setImage(avatars.images[index]);
                           setState(
                             () {
-                              selectedImage = index;
+                              if (selectedImage != index) {
+                                selectedImage = index;
+                              } else {
+                                selectedImage = -1;
+                                imageUrl = selectPLayer.imageUrl!;
+                              }
                             },
                           );
                         },
