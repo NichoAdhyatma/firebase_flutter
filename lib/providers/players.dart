@@ -114,7 +114,7 @@ class Players with ChangeNotifier {
     );
   }
 
-  Future<void> initializeData() {
+  Future<void> initializeData() async {
     Uri url = Uri.parse(
         "https://flutter-firebase-7cca4-default-rtdb.firebaseio.com/players.json");
 
@@ -125,6 +125,7 @@ class Players with ChangeNotifier {
         if (response != null) {
           response as Map<String, dynamic>;
 
+          _allPlayer.clear();
           response.forEach(
             (key, value) {
               _allPlayer.add(
@@ -138,9 +139,16 @@ class Players with ChangeNotifier {
               );
             },
           );
-          notifyListeners();
         }
+        notifyListeners();
       },
     );
   }
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+  }
 }
+
+

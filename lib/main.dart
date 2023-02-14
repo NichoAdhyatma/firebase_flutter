@@ -1,3 +1,4 @@
+import 'package:fire_flutter/providers/avatars.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,13 +16,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => Players(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => Players()),
+        ChangeNotifierProvider(create: (context) => Avatars()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: const HomePage(),
         routes: {
-          AddPlayer.routeName: (context) => AddPlayer(),
+          AddPlayer.routeName: (context) => const AddPlayer(),
           DetailPlayer.routeName: (context) => const DetailPlayer(),
         },
       ),

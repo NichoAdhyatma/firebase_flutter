@@ -2,16 +2,37 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/avatars.dart';
 import '../providers/players.dart';
 
-class DetailPlayer extends StatelessWidget {
+class DetailPlayer extends StatefulWidget {
   static const routeName = "/detail-player";
 
   const DetailPlayer({super.key});
 
   @override
+  State<DetailPlayer> createState() => _DetailPlayerState();
+}
+
+class _DetailPlayerState extends State<DetailPlayer> {
+  bool isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    print("avatar generatre");
+    if (isInit) {
+      Provider.of<Avatars>(context).generateImages();
+      isInit = !isInit;
+    }
+    super.didChangeDependencies();
+  }
+
+  int selectedImage = 0;
+  @override
   Widget build(BuildContext context) {
     final players = Provider.of<Players>(context, listen: false);
+    final avatars = Provider.of<Avatars>(context, listen: false);
+
     final playerId = ModalRoute.of(context)!.settings.arguments as String;
     final selectPLayer = players.selectById(playerId);
     final TextEditingController imageController =
@@ -20,6 +41,10 @@ class DetailPlayer extends StatelessWidget {
         TextEditingController(text: selectPLayer.name);
     final TextEditingController positionController =
         TextEditingController(text: selectPLayer.position);
+
+    setImage(String url) {
+      imageController.text = url;
+    }
 
     editPlayer() {
       players
@@ -72,8 +97,8 @@ class DetailPlayer extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(50),
                 child: SizedBox(
-                  width: 150,
-                  height: 150,
+                  width: 100,
+                  height: 100,
                   child: CachedNetworkImage(
                     imageUrl: selectPLayer.imageUrl!,
                     placeholder: (context, url) =>
@@ -97,29 +122,84 @@ class DetailPlayer extends StatelessWidget {
                 textInputAction: TextInputAction.next,
                 controller: positionController,
               ),
-              TextFormField(
-                autocorrect: false,
-                decoration: const InputDecoration(labelText: "Image URL"),
-                textInputAction: TextInputAction.done,
-                controller: imageController,
-                onEditingComplete: () {
-                  editPlayer();
-                },
+              const SizedBox(
+                height: 20,
               ),
-              const SizedBox(height: 30),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.expand(
+                      width: MediaQuery.of(context).size.width, height: 100),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                    ),
+                    itemCount: avatars.length,
+                    itemBuilder: (context, index) => ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: TextButton(
+                        onPressed: () {
+                          setImage(avatars.images[index]);
+                          setState(
+                            () {
+                              selectedImage = index;
+                            },
+                          );
+                        },
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              side: BorderSide(
+                                  width: selectedImage == index ? 5 : 0,
+                                  color: Colors.blue),
+                            ),
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: avatars.images[index],
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => Image.network(
+                            "https://api.multiavatar.com/0.png",
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               Container(
                 width: double.infinity,
                 alignment: Alignment.centerRight,
-                child: OutlinedButton(
-                  onPressed: () {
-                    editPlayer();
-                  },
-                  child: const Text(
-                    "Edit",
-                    style: TextStyle(
-                      fontSize: 18,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          isInit = true;
+                          avatars.notifyListeners();
+                        });
+                      },
+                      child: const Icon(Icons.refresh),
                     ),
-                  ),
+                    const SizedBox(
+                      width: 20.0,
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        editPlayer();
+                      },
+                      child: const Text(
+                        "Edit",
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

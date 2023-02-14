@@ -1,20 +1,52 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fire_flutter/providers/avatars.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/players.dart';
 
-class AddPlayer extends StatelessWidget {
+class AddPlayer extends StatefulWidget {
   static const routeName = "/add-player";
+
+  const AddPlayer({super.key});
+
+  @override
+  State<AddPlayer> createState() => _AddPlayerState();
+}
+
+class _AddPlayerState extends State<AddPlayer> {
   final TextEditingController nameController = TextEditingController();
+
   final TextEditingController positionController = TextEditingController();
+
   final TextEditingController imageController =
       TextEditingController(text: "https://api.multiavatar.com/1.png");
 
-  AddPlayer({super.key});
+  bool isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    print("avatar generatre");
+    if (isInit) {
+      Provider.of<Avatars>(context)
+          .generateImages()
+          .whenComplete(() => isInit = !isInit);
+    }
+    super.didChangeDependencies();
+  }
+
+  setImage(String url) {
+    imageController.text = url;
+  }
+
+  int selectedImage = 0;
 
   @override
   Widget build(BuildContext context) {
+    print("build add-player");
     final players = Provider.of<Players>(context, listen: false);
+    final avatars = Provider.of<Avatars>(context);
+
     addPlayer() {
       players
           .addPlayer(
@@ -38,7 +70,7 @@ class AddPlayer extends StatelessWidget {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text("Server Error $err"),
+              title: const Text("Server Error"),
               content: const Text("Check your internet connection!"),
               actions: [
                 TextButton(
@@ -84,29 +116,93 @@ class AddPlayer extends StatelessWidget {
                 textInputAction: TextInputAction.next,
                 controller: positionController,
               ),
-              TextFormField(
-                autocorrect: false,
-                decoration: const InputDecoration(labelText: "Image URL"),
-                textInputAction: TextInputAction.done,
-                controller: imageController,
-                onEditingComplete: () {
-                  addPlayer();
-                },
+              // TextFormField(
+              //   autocorrect: false,
+              //   decoration: const InputDecoration(labelText: "Image URL"),
+              //   textInputAction: TextInputAction.done,
+              //   controller: imageController,
+              //   onEditingComplete: () {
+              //     addPlayer();
+              //   },
+              // ),
+              const SizedBox(
+                height: 20,
               ),
-              const SizedBox(height: 50),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.tightFor(
+                      width: MediaQuery.of(context).size.width, height: 100),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                    ),
+                    itemCount: avatars.length,
+                    itemBuilder: (context, index) => ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: TextButton(
+                        onPressed: () {
+                          setImage(avatars.images[index]);
+                          setState(
+                            () {
+                              selectedImage = index;
+                            },
+                          );
+                        },
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              side: BorderSide(
+                                  width: selectedImage == index ? 5 : 0,
+                                  color: Colors.blue),
+                            ),
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: avatars.images[index],
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) =>
+                              const FlutterLogo(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               Container(
                 width: double.infinity,
                 alignment: Alignment.centerRight,
-                child: OutlinedButton(
-                  onPressed: () {
-                    addPlayer();
-                  },
-                  child: const Text(
-                    "Submit",
-                    style: TextStyle(
-                      fontSize: 18,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          isInit = true;
+                          avatars.notifyListeners();
+                        });
+                      },
+                      child: const Icon(Icons.refresh),
                     ),
-                  ),
+                    const SizedBox(
+                      width: 20.0,
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        addPlayer();
+                      },
+                      child: const Text(
+                        "Add",
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
