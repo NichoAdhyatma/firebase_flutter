@@ -25,6 +25,8 @@ class _DetailPlayerState extends State<DetailPlayer> {
     imageUrl = url;
   }
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void didChangeDependencies() {
     if (isInit) {
@@ -48,42 +50,44 @@ class _DetailPlayerState extends State<DetailPlayer> {
         TextEditingController(text: selectPLayer.position);
 
     editPlayer() {
-      players
-          .editPlayer(
-        playerId,
-        nameController.text,
-        positionController.text,
-        imageUrl.isEmpty ? selectPLayer.imageUrl! : imageUrl,
-      )
-          .then(
-        (value) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Berhasil diubah"),
-              duration: Duration(seconds: 2),
-            ),
-          );
-          Navigator.pop(context);
-        },
-      ).catchError(
-        (err) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text("Server Error $err"),
-              content: const Text("Check your internet connection!"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("Ok"),
-                ),
-              ],
-            ),
-          );
-        },
-      );
+      if (_formKey.currentState!.validate()) {
+        players
+            .editPlayer(
+          playerId,
+          nameController.text,
+          positionController.text,
+          imageUrl.isEmpty ? selectPLayer.imageUrl! : imageUrl,
+        )
+            .then(
+          (value) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Berhasil diubah"),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            Navigator.pop(context);
+          },
+        ).catchError(
+          (err) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("Server Error $err"),
+                content: const Text("Check your internet connection!"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("Ok"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }
     }
 
     return Scaffold(
@@ -93,6 +97,7 @@ class _DetailPlayerState extends State<DetailPlayer> {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
+          key: _formKey,
           child: Column(
             children: [
               ClipRRect(
@@ -115,12 +120,24 @@ class _DetailPlayerState extends State<DetailPlayer> {
                 decoration: const InputDecoration(labelText: "Nama"),
                 textInputAction: TextInputAction.next,
                 controller: nameController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your Name";
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 autocorrect: false,
                 decoration: const InputDecoration(labelText: "Posisi"),
                 textInputAction: TextInputAction.next,
                 controller: positionController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your Position";
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 10,

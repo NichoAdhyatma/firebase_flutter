@@ -19,15 +19,15 @@ class _AddPlayerState extends State<AddPlayer> {
 
   final TextEditingController positionController = TextEditingController();
 
-  final TextEditingController imageController =
-      TextEditingController(text: "https://api.multiavatar.com/1.png");
+  final TextEditingController imageController = TextEditingController(text: "");
 
   bool isInit = true;
   bool select = false;
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void didChangeDependencies() {
-    print("avatar generatre");
     if (isInit) {
       Provider.of<Avatars>(context)
           .generateImages()
@@ -44,47 +44,65 @@ class _AddPlayerState extends State<AddPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    print("build add-player");
     final players = Provider.of<Players>(context, listen: false);
     final avatars = Provider.of<Avatars>(context);
 
     addPlayer() {
-      players
-          .addPlayer(
-        nameController.text,
-        positionController.text,
-        imageController.text,
-        context,
-      )
-          .then(
-        (value) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Berhasil ditambahkan"),
-              duration: Duration(seconds: 2),
-            ),
-          );
-          Navigator.pop(context);
-        },
-      ).catchError(
-        (err) {
-          showDialog(
+      if (_formKey.currentState!.validate()) {
+        if (imageController.text.isEmpty) {
+          return showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text("Server Error"),
-              content: const Text("Check your internet connection!"),
+              title: const Text("Avatar is not selected"),
+              content: const Text("Select Yout Avatar..."),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text("Ok"),
+                  child: const Text("Okay"),
                 ),
               ],
             ),
           );
-        },
-      );
+        }
+        players
+            .addPlayer(
+          nameController.text,
+          positionController.text,
+          imageController.text,
+          context,
+        )
+            .then(
+          (value) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Berhasil ditambahkan"),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            Navigator.pop(context);
+          },
+        ).catchError(
+          (err) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("Server Error"),
+                content: const Text("Check your internet connection!"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("Ok"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }
     }
 
     return Scaffold(
@@ -102,17 +120,30 @@ class _AddPlayerState extends State<AddPlayer> {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
+          key: _formKey,
           child: Column(
             children: [
               TextFormField(
                 autocorrect: false,
                 autofocus: true,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your Position";
+                  }
+                  return null;
+                },
                 decoration: const InputDecoration(labelText: "Nama"),
                 textInputAction: TextInputAction.next,
                 controller: nameController,
               ),
               TextFormField(
                 autocorrect: false,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your Position";
+                  }
+                  return null;
+                },
                 decoration: const InputDecoration(labelText: "Posisi"),
                 textInputAction: TextInputAction.next,
                 controller: positionController,
